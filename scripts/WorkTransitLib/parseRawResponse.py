@@ -54,11 +54,16 @@ def parse_driving_details(driving_resp):
     driving_details['summary'] = driving_resp['summary']
     driving_details['duration_hr'] = parse_duration(legs['duration']['value'])
     driving_details['duration_text'] = legs['duration']['text']
-
-    driving_details['duration_in_traffic_hr'] = parse_duration(legs['duration_in_traffic']['value'])
-    driving_details['duration_in_traffic_text'] = legs['duration_in_traffic']['text']
-
-    driving_details['extra time in traffic_min'] = np.round((driving_details['duration_in_traffic_hr'] - driving_details['duration_hr'])*60.0, 2)
+    if 'duration_in_traffic' in legs.keys():
+        driving_details['duration_in_traffic_hr'] = parse_duration(legs['duration_in_traffic']['value'])
+        driving_details['duration_in_traffic_text'] = legs['duration_in_traffic']['text']
+        driving_details['extra time in traffic_min'] = np.round((driving_details['duration_in_traffic_hr'] - driving_details['duration_hr'])*60.0, 2)
+    else:
+        print("No duration in traffic in resp")
+        print(legs)
+        driving_details['duration_in_traffic_hr'] = np.nan
+        driving_details['duration_in_traffic_text'] = np.nan
+        driving_details['extra time in traffic_min'] = np.nan
 
     driving_details['distance_mi'] = parse_distance(legs['distance']['value'])
 
@@ -74,7 +79,7 @@ def parse_transit_details(transit_resp):
     transit_details = {}
     legs = transit_resp['legs'][0]
     transit_steps = [x for x in legs['steps'] if x['travel_mode'] == 'TRANSIT']
-    lines = [x['transit_details']['line']['short_name'] for x in transit_steps]
+    lines = [x['transit_details']['line'].get('short_name') for x in transit_steps]
     transit_details['departure_time'] = parse_time(legs['departure_time']['value'])
     transit_details['arrival_time'] = parse_time(legs['arrival_time']['value'])
     transit_details['duration_hr'] = parse_duration(legs['duration']['value'])
@@ -157,6 +162,7 @@ class RunParser():
                 .apply(lambda x: parse_transit_details(literal_eval(x)[0]))
             return(transit_df_parsed)
         elif self.mode == 'driving':
+            raw_df = raw_df[raw_df['Raw Response'] != '[]']
             driving_df_parsed = raw_df['Raw Response']\
                 .apply(lambda x: parse_driving_details(literal_eval(x)[0]))
             return(driving_df_parsed)

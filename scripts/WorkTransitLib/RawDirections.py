@@ -74,13 +74,15 @@ parameter_sets = dict(
 
 class GetRawAPI():
     
-    def __init__(self):
+    def __init__(self, start_time):
         print("Let's get started")
+        self.start_time = start_time
         pass
 
-    @staticmethod 
-    def create_param_sets(param_names):
+    def create_param_sets(self, param_names):
         param_set_list = [parameter_sets[x] for x in param_names]
+        for param_set in param_set_list:
+            param_set['departure_time'] = self.start_time
         return(param_set_list)
 
     @staticmethod
