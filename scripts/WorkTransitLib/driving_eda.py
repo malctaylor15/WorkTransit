@@ -39,6 +39,8 @@ def create_leave_time_gb(df, with_col='Day of Week'):
         .groupby([with_col, pd.Grouper(freq='20T')])\
         .apply(lambda x: gb_summary_func(x))
     time_gb2 = time_gb.reset_index()
+    time_gb2 = time_gb2
+    print(time_gb2)
     time_gb2['Earliest Start Time'] = pd.to_datetime(time_gb2['Earliest Time'])
     return(time_gb2)
 
@@ -166,6 +168,7 @@ class SummarizeDriving():
             {'origin_name' : 'work',   'dest_name': 'bxbark'},
         ]
         for pair in pairs:
+            print("Working on ", pair)
             rslt = self.one_route_pipeline(**pair)
             self.summ_dicts.append(rslt)
             
