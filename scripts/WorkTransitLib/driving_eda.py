@@ -36,11 +36,10 @@ def gb_summary_func(df):
     
 def create_leave_time_gb(df, with_col='Day of Week'):
     time_gb = df.set_index('departure_time_time')\
-        .groupby([with_col, pd.Grouper(freq='20T')])\
+        .groupby([with_col, pd.Grouper(freq='20T')], group_keys=False)\
         .apply(lambda x: gb_summary_func(x))
     time_gb2 = time_gb.reset_index()
     time_gb2 = time_gb2
-    print(time_gb2)
     time_gb2['Earliest Start Time'] = pd.to_datetime(time_gb2['Earliest Time'])
     return(time_gb2)
 
@@ -158,15 +157,21 @@ class SummarizeDriving():
         df_summ = df_summ.rename({0:routename})
         return(df_summ)
 
+    def get_orign_dest_pairs_from_df(self):
+        multi_ind = self.df.groupby(['origin_name', 'destination_name']).count().index
+        multi_ind1 = multi_ind.to_flat_index().to_list()
+        list_of_ori_dest_dicts = [{'origin_name':x[0], 'dest_name':x[1]} for x in multi_ind1]
+        return(list_of_ori_dest_dicts)
         
     def run_multiple_trips(self):
         self.summ_dicts = []
-        pairs = [
-            {'origin_name' : 'home',   'dest_name': 'work'},
-            {'origin_name' : 'work',   'dest_name': 'home'},
-            {'origin_name' : 'bxbark', 'dest_name': 'work'},
-            {'origin_name' : 'work',   'dest_name': 'bxbark'},
-        ]
+#         pairs = [
+#             {'origin_name' : 'home',   'dest_name': 'work'},
+#             {'origin_name' : 'work',   'dest_name': 'home'},
+#             {'origin_name' : 'bxbark', 'dest_name': 'work'},
+#             {'origin_name' : 'work',   'dest_name': 'bxbark'},
+#         ]
+        pairs = self.get_orign_dest_pairs_from_df()
         for pair in pairs:
             print("Working on ", pair)
             rslt = self.one_route_pipeline(**pair)
